@@ -60,6 +60,18 @@ struct Vertex
     double w;
 };
 
+// Everything needed for the view/camera transform
+struct camControls
+{
+	double x = 0;
+	double y = 0;
+	double z = 0;
+	double yaw = 0;
+	double roll = 0;
+	double pitch = 0;
+};
+camControls myCam;
+
 /******************************************************
  * BUFFER_2D:
  * Used for 2D buffers including render targets, images

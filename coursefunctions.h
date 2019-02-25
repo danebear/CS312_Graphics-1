@@ -363,7 +363,7 @@ void TestDrawPerspectiveCorrect(Buffer2D<PIXEL> & target)
 
 
 
-        static BufferImage myImage("cage.bmp");
+        static BufferImage myImage("checker.bmp");
         // Ensure the checkboard image is in this directory
 
         Attributes imageUniforms;
@@ -414,14 +414,14 @@ void TestVertexShader(Buffer2D<PIXEL> & target)
         VertexShader myColorVertexShader(SimpleVertexShader);
 
         /******************************************************************
-	 * TRANSLATE (move +100 in the X direction, +50 in the Y direction)
+		* TRANSLATE (move +100 in the X direction, +50 in the Y direction)
          *****************************************************************/
         // Your translating code that integrates with 'colorUniforms', used by 'myColorVertexShader' goes here
 
-	Transform trans = translate4x4(100, 50, 0);
-	colorUniforms.insertPtr(&trans);
+		Transform trans = translate4x4(100, 50, 0);
+		colorUniforms.insertPtr(&trans);
 	
-	DrawPrimitive(TRIANGLE, target, colorTriangle, colorAttributes, &colorUniforms, &myColorFragShader, &myColorVertexShader);
+		DrawPrimitive(TRIANGLE, target, colorTriangle, colorAttributes, &colorUniforms, &myColorFragShader, &myColorVertexShader);
 
         /***********************************
          * SCALE (scale by a factor of 0.5)
@@ -503,20 +503,42 @@ void TestPipeline(Buffer2D<PIXEL> & target)
 
         double coordinates[4][2] = { {0,0}, {1,0}, {1,1}, {0,1} };
         // Your texture coordinate code goes here for 'imageAttributesA, imageAttributesB'
-
+		imageAttributesA[0].insertDbl(coordinates[0][0]); // First group of attributes 
+		imageAttributesA[0].insertDbl(coordinates[0][1]);
+		imageAttributesA[1].insertDbl(coordinates[1][0]);
+		imageAttributesA[1].insertDbl(coordinates[1][1]);
+		imageAttributesA[2].insertDbl(coordinates[2][0]);
+		imageAttributesA[2].insertDbl(coordinates[2][1]);
+		imageAttributesB[0].insertDbl(coordinates[2][0]); // Second group of attributes
+		imageAttributesB[0].insertDbl(coordinates[2][1]);
+		imageAttributesB[1].insertDbl(coordinates[3][0]);
+		imageAttributesB[1].insertDbl(coordinates[3][1]);
+		imageAttributesB[2].insertDbl(coordinates[0][0]);
+		imageAttributesB[2].insertDbl(coordinates[0][1]);
+				
         BufferImage myImage("checker.bmp");
-        // Ensure the checkboard image is in this directory, you can use another image though
-
         Attributes imageUniforms;
-        // Your code for the uniform goes here
 
+		Transfrom model = translate4x4(0, 0, 0);
+		Transform view = camera4x4(	myCam.x, myCam.y, myCam.z, 
+									myCam.yaw, myCam.pitch, myCam.roll);
+
+		// Uniforms
+		// [0] -> Image reference
+		// [1] -> Model transform 
+		// [2] -> View transform 
+		
+		imageUniforms.insertPtr((void*)&myImage);
+		imageUniforms.insertPtr((void*)&model);
+		imageUniforms.insertPtr((void*)&view);
+		
         FragmentShader fragImg;
-        // Your code for the image fragment shader goes here
+		fragImg.FragShader = ImageFragShader;
 
         VertexShader vertImg;
-        // Your code for the image vertex shader goes here
-        // NOTE: This must include the at least the 
-        // projection matrix if not more transformations 
+		vertImg.VertShader = SimpleVertexShader2;
+		
+		
                 
         // Draw image triangle 
         DrawPrimitive(TRIANGLE, target, verticesImgA, imageAttributesA, &imageUniforms, &fragImg, &vertImg, &zBuf);
