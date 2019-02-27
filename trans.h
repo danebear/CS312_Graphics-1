@@ -292,13 +292,9 @@ Transform perspective4x4(	const double & fovYDegrees, const double & aspectRatio
 		rt[3][0] = 0;
 		rt[3][1] = 0;
 		rt[3][2] = 1;
-		rtg[3][3] = 0;
+		rt[3][3] = 0;
 		
-		
-		
-		
-		
-		
+		return rt;		
 }
 
 
