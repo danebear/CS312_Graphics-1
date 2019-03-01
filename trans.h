@@ -266,26 +266,6 @@ Transform perspective4x4(	const double & fovYDegrees, const double & aspectRatio
 }
 
 
-
-
-
-
-Transform camera4x4(const double & offX, const double & offY, const double & offZ,
-					 const double & yaw, const double & pitch, const double & roll)
-{
-	
-	Transform trans = translate4x4(-offX, -offY, -offZ);
-	Transform rotX = rotate4x4(X, -pitch);
-	Transform rotY = rotate4x4(Y, -yaw);
-	
-	Transform rt = rotX * rotY * trans;
-	return rt;	
-}
-
-
-
-
-
 // Translation helper (4x4)
 Transform translate4x4(const double & offX, const double & offY, const double & offZ)
 {
@@ -309,5 +289,25 @@ Transform translate4x4(const double & offX, const double & offY, const double & 
 
   return tr;
 }
+
+
+
+
+Transform camera4x4(const double & offX, const double & offY, const double & offZ,
+					 const double & yaw, const double & pitch, const double & roll)
+{
+	
+	Transform trans = translate4x4(-offX, -offY, -offZ);
+	Transform rotX = rotate4x4(X, -pitch);
+	Transform rotY = rotate4x4(Y, -yaw);
+	
+	Transform rt = rotX * rotY * trans;
+	return rt;	
+}
+
+
+
+
+
 
 #endif
