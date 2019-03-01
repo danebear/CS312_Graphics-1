@@ -60,6 +60,18 @@ struct Vertex
     double w;
 };
 
+// Everything needed for the view/camera transform
+struct camControls
+{
+	double x = 0;
+	double y = 0;
+	double z = 0;
+	double yaw = 0;
+	double roll = 0;
+	double pitch = 0;
+};
+camControls myCam;
+
 /******************************************************
  * BUFFER_2D:
  * Used for 2D buffers including render targets, images
@@ -357,15 +369,19 @@ class Attributes
             while(numMembers < first.numMembers)
             {
 	         arr[numMembers].d = baryInterp(firstWgt, secndWgt, thirdWgt, first.arr[numMembers].d, secnd[numMembers].d, third.arr[numMembers].d);
-		 arr[numMembers].d = arr[numMembers].d * correctZ;
-		 numMembers += 1;
+			 arr[numMembers].d = arr[numMembers].d * correctZ;
+			 numMembers += 1;
             }
         }
 
         // Needed by clipping (linearly interpolated Attributes between two others)
-        Attributes(const Attributes & first, const Attributes & second, const double & valueBetween)
+        Attributes(const Attributes & first, const Attributes & second, const double & along)
         {
-            // Your code goes here when clipping is implemented
+				numMembers = first.numMembers;
+				for(int i = 0; i < numMembers; i++)
+				{
+					arr[i].d = (first[i].d) + ((second[i].d - first[i].d) * along);
+				}
         }
 
         // Const Return operator

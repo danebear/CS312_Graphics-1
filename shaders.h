@@ -13,6 +13,18 @@ void SimpleVertexShader(Vertex & vertOut, Attributes & attrOut, const Vertex & v
   attrOut = attrIn;
 }
 
+void SimpleVertexShader2(Vertex & vertOut, Attributes & attrOut, const Vertex & vertIn, const Attributes & attrIn, const Attributes & uniforms)
+{
+  Transform* model = (Transform*)uniforms[1].ptr;
+  Transform* view = (Transform*)uniforms[2].ptr;
+
+  vertOut = (*view) * (*model) * vertIn;
+
+  // Pass through attributes
+  attrOut = attrIn;
+}
+
+
 // Image Fragment Shader 
 void ImageFragShader(PIXEL & fragment, const Attributes & vertAttr, const Attributes & uniforms)
 {

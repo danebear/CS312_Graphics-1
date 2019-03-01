@@ -51,6 +51,64 @@ void processUserInputs(bool & running)
         {
             running = false;
         }
+		
+		
+		if(e.type == SDL_MOUSEMOTION)
+		{
+			int cur = SDL_ShowCursor(SDL_QUERY);
+			if(cur == SDL_DISABLE)
+			{
+				double mouseX = e.motion.xrel;
+				double mouseY = e.motion.yrel;
+				
+				myCam.yaw -= mouseX * 0.02;
+				myCam.pitch += mouseY * 0.02;
+			}
+		}
+		
+		if(e.type == SDL_MOUSEBUTTONDOWN)
+		{
+			int cur = SDL_ShowCursor(SDL_QUERY);
+			if(cur == SDL_DISABLE)
+			{
+				SDL_ShowCursor(SDL_ENABLE);
+				SDL_SetRelativeMouseMode(SDL_FALSE);
+			}
+			else
+			{
+				SDL_ShowCursor(SDL_DISABLE);
+				SDL_SetRelativeMouseMode(SDL_TRUE);
+			}
+		}
+		
+		// Translation 
+		if((e.key.keysym.sym == 'w' && e.type == SDL_KEYDOWN))
+		{
+			myCam.z += (cos((myCam.yaw / 180.0) * M_PI)) * 0.05;
+			myCam.x -= (sin((myCam.yaw / 180.0) * M_PI)) * 0.05;
+		}
+		if((e.key.keysym.sym == 's' && e.type == SDL_KEYDOWN))
+		{
+			myCam.z -= (cos((myCam.yaw / 180.0) * M_PI)) * 0.05;
+			myCam.x += (sin((myCam.yaw / 180.0) * M_PI)) * 0.05;
+		}
+		if((e.key.keysym.sym == 'a' && e.type == SDL_KEYDOWN))
+		{
+			myCam.x -= (cos((myCam.yaw / 180.0) * M_PI)) * 0.05;
+			myCam.z -= (sin((myCam.yaw / 180.0) * M_PI)) * 0.05;
+		}
+		if((e.key.keysym.sym == 'd' && e.type == SDL_KEYDOWN))
+		{
+			myCam.x += (cos((myCam.yaw / 180.0) * M_PI)) * 0.05;
+			myCam.z += (sin((myCam.yaw / 180.0) * M_PI)) * 0.05;
+		}
+		
+		
+	}
+		
+		// Translation
+		
+		
     }
 }
 
@@ -270,12 +328,200 @@ void DrawTriangle(Buffer2D<PIXEL> & target, Vertex* const triangle, Attributes* 
 void VertexShaderExecuteVertices(const VertexShader* vert, Vertex const inputVerts[], Attributes const inputAttrs[], const int& numIn, 
                                  Attributes* const uniforms, Vertex transformedVerts[], Attributes transformedAttrs[])
 {
+  if(vert == NULL)
+    {
+    for(int i = 0; i < numIn; i++)
+    {
+      transformedVerts[i] = inputVerts[i];
+      transformedAttrs[i] = inputAttrs[i];
+    }
+
+    return;
+    }
+  
+
     // Defaults to pass-through behavior
     for(int i = 0; i < numIn; i++)
     {
         vert->VertShader(transformedVerts[i], transformedAttrs[i], inputVerts[i], inputAttrs[i], *uniforms);
     }
 }
+
+void intersectAgainstYLimit(double & along, 
+							const double & yLimit, 
+							const double & segStartY,
+							const double & segEndY)
+{
+	along = -1;
+	
+	double segDiffY = (segEndY - segStartY);
+	if(segDiff == 0)
+	{
+		return;
+	}
+	
+	along = (yLimit - segStartY) / segDiffY;
+}
+
+void intersectAtPositiveLine(	double & along, 
+								const double & segStartX, 
+								const double & segStartY,
+								const double & segEndX, 
+								const double & segEndY)								
+{
+	along = -1;
+	double segDiffX = (segEndX - segStartX);
+	double segDiffY = (segEndY - segStartY);
+	
+	if(segDiffX == segDiffY)
+	{
+		return ;
+	}
+	
+	along = (segStartY - segStartX) / (segDiffX - segDiffY);
+}
+
+void intersectAtNegativeLine(	double & along, 
+								const double & segStartX, 
+								const double & segStartY,
+								const double & segEndX, 
+								const double & segEndY)								
+{
+	along = -1;
+	double segDiffX = (segEndX - segStartX);
+	double segDiffY = (segEndY - segStartY);
+	
+	if(segDiffX == segDiffY)
+	{
+		return ;
+	}
+	
+	along = (segStartY + segStartX) / (-segDiffX - segDiffY);
+}
+
+Vertex VertexBetweenVerts(const Vertex & vertA, const Vertex & vertB, const double & along)
+{
+	Vertex rv;
+	rv.x = (vertA.x) + ((vertB.x-vertA.x) * along);
+	rv.y = (VertA.y) + ((VertB.y-VertA.y) * along);
+	rv.z = (VertA.z) + ((VertB.z-VertA.z) * along);
+	rv.w = (VertA.w) + ((VertB.w-VertA.w) * along);
+	return rv;
+} 
+
+void clipVertices(Vertex const transformedVerts[], Attributes const transformedAttrs[], 
+				const int & numIn, 
+				Vertex clippedVertices[], Attributes clippedAttrs[], int & numClipped)
+{
+		// TMP Clip buffers 
+		int num;
+		int numOut;
+		bool inBounds[MAX_VERTICES];
+		Vertex tmpVertA[MAX_VERTICES];
+		Vertex tmpVertB[MAX_VERTICES];
+		Attributes tmpAttrA[MAX_VERTICES];
+		Attributes tmpAttrB[MAX_VERTICES];
+		
+		Vertex const * srcVerts;
+		Vertex* sinkVerts;
+		Attributes const * srcAttrs;
+		Attributes* sinkAttrs;
+
+		
+		// Setup Pointers for the first round of clipping 
+		srcVerts = transformedVerts;
+		srcAttrs = transformedAttrs;
+		sinkVerts = tmpVertA;
+		sinkAttrs = tmpAttrA;
+		num = numIn;
+		numOut = 0;
+				
+		double wLimit = 0.001;
+		for(int i = 0; i < num; i++)
+		{
+			inBounds[i] = (srcVerts[i].w > wLimit);
+		}
+		for(int i = 0; i < num; i++)
+		{
+			int cur = i;
+			int next = (i+1) % num;
+			bool curVertexIn = inBounds[cur];
+			bool nextVertexIn = inBounds[next];
+			
+			if(curVertexIn && nextVertexIn)
+			{
+				sinkVerts[numOut] = srcVerts[next];
+				sinkAttrs[numOut++] = srcAttrs[next];
+			}
+			else if(curVertexIn && !nextVertexIn)
+			{
+				double along;
+				intersectAgainstYLimit(along, wLimit, srcVerts[cur].w, srcVerts[next].w);
+				sinkVerts[numOut] = VertexBetweenVerts(srcVerts[cur], srcVerts[next], along);
+				sinkAttrs[numOut++] = Attributes(srcAttrs[cur], srcAttrs[next], along);
+				
+			}
+		}
+		
+
+		
+	
+	
+}
+
+void normalizeVertices(	Vertex clippedVertices[], 
+						Attributes clippedAttrs[], 
+						const int & numClipped)
+{
+	for(int i = 0; i < numClipped; i++)
+	{
+		// Normalize X,Y,Z components of homogeneous coordinates
+		clippedVertices[i].x /= clippedVertices[i].w;
+		clippedVertices[i].y /= clippedVertices[i].w;
+		clippedVertices[i].z /= clippedVertices[i].w;
+		
+		// Setup W value for depth interpolation 
+		double zValue = clippedVertices[i].w;
+		clippedVertices[i].w = 1.0 / zValue;
+			
+		// Setup Attributes 
+		for(int j = 0; j < clippedAttrs[i].numMembers; j++)
+		{
+			clippedAttrs[i][j].d /= zValue;
+		}		
+	}
+	
+}
+
+void viewportTransform( Buffer2D<PIXEL>& target, 
+						Vertex clippedVertices[], 
+						const int & numClipped)
+{
+	// Move from -1 -> 1 space in X,Y to screen coordinates 
+	int w = target.width();
+	int h = target.height();
+	
+	for(int i = 0; i < numClipped; i++)
+	{
+		clippedVertices[i].x = (round( (( (clippedVertices[i].x + 1) / 2.0 * w))));
+		clippedVertices[i].y = (round( (( (clippedVertices[i].y + 1) / 2.0 * h))));
+		
+		/*	Let's say we have clipped, normalized vertex (-0.5, -1)		
+		*	Our Box is from -1 to 1 in X,Y 
+		*
+		*	For screen X,Y positions 
+		*	SX = (-0.5 + 1) / 2 * W = 0.25 * Width 
+		*	SY = (-1 + 1) / 2 * H = 0.0 * Height 
+		*/ 
+		
+		
+	}
+	
+}
+	
+
+
+
 
 /***************************************************************************
  * DRAW_PRIMITIVE
@@ -315,6 +561,20 @@ void DrawPrimitive(PRIMITIVES prim,
     Attributes transformedAttrs[MAX_VERTICES];
     VertexShaderExecuteVertices(vert, inputVerts, inputAttrs, numIn, uniforms, transformedVerts, transformedAttrs);
 
+	// Clipping
+    Vertex clippedVertices[MAX_VERTICES];
+    Attributes clippedAttrs[MAX_VERTICES];
+	int numClipped;
+	clipVertices(transformedVerts, transformedAttrs, numIn, 
+				clippedVertices, clippedAttrs, numClipped);
+		
+		// Normalize 
+		normalizeVertices(clippedVertices, clippedAttrs, numClipped);
+	
+		// Adapt to viewport 
+		viewportTransform(target, clippedVertices, numClipped);
+	
+	
     // Vertex Interpolation & Fragment Drawing
     switch(prim)
     {
@@ -360,9 +620,9 @@ int main()
         // Refresh Screen
         clearScreen(frame);
 
-	    // Demonstrate perspective
+		// Demonstrate perspective
         //TestDrawPerspectiveCorrect(frame);
-	    TestVertexShader(frame);
+		//TestVertexShader(frame);
 
         // Push to the GPU
         SendFrame(GPU_OUTPUT, REN, FRAME_BUF);
