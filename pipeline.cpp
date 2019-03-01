@@ -906,7 +906,21 @@ void DrawPrimitive(PRIMITIVES prim,
             DrawLine(target, transformedVerts, transformedAttrs, uniforms, frag);
             break;
         case TRIANGLE:
-            DrawTriangle(target, clippedVertices, clippedAttrs, uniforms, frag);
+			Vertex tri[3];
+			Attributes vAttr[3];
+			for(int i = 2; i < numClipped; i++)
+			{
+				tri[0] = clippedVertices[0];
+				tri[1] = clippedVertices[i-1];
+				tri[2] = clippedVertices[i];
+
+				vAttr[0] = clippedAttrs[0];
+				vAttr[1] = clippedAttrs[i-1];
+				vAttr[2] = clippedAttrs[i];
+				
+				DrawTriangle(target, tri, vAttr, uniforms, frag);
+			}
+			
     }
 }
 
