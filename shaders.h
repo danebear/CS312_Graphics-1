@@ -17,8 +17,9 @@ void SimpleVertexShader2(Vertex & vertOut, Attributes & attrOut, const Vertex & 
 {
   Transform* model = (Transform*)uniforms[1].ptr;
   Transform* view = (Transform*)uniforms[2].ptr;
+  Transform* proj = (Transform*)uniforms[3].ptr;
 
-  vertOut = (*view) * (*model) * vertIn;
+  vertOut = (*proj) * (*view) * (*model) * vertIn;
 
   // Pass through attributes
   attrOut = attrIn;
@@ -28,6 +29,26 @@ void SimpleVertexShader2(Vertex & vertOut, Attributes & attrOut, const Vertex & 
 // Image Fragment Shader 
 void ImageFragShader(PIXEL & fragment, const Attributes & vertAttr, const Attributes & uniforms)
 {
+    /*
+    // Figure out which X/Y square our UV would fall on
+    int xSquare = vertAttr[0].d * 8;
+    int ySquare = vertAttr[1].d * 8;
+
+	// Is the X square position even? The Y? 
+    bool evenXSquare = (xSquare % 2) == 0;
+    bool evenYSquare = (ySquare % 2) == 0;
+
+    // Both even or both odd - red square
+    if( (evenXSquare && evenYSquare) || (!evenXSquare && !evenYSquare) )
+    {
+        fragment = 0xffff0000;
+    }
+    // One even, one odd - white square
+    else
+    {
+        fragment = 0xffffffff;
+    }
+    */
     BufferImage* bf = (BufferImage*)uniforms[0].ptr;
     int x = vertAttr[0].d * (bf->width()-1);
     int y = vertAttr[1].d * (bf->height()-1);

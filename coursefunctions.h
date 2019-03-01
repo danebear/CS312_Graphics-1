@@ -516,12 +516,13 @@ void TestPipeline(Buffer2D<PIXEL> & target)
 		imageAttributesB[2].insertDbl(coordinates[0][0]);
 		imageAttributesB[2].insertDbl(coordinates[0][1]);
 				
-        BufferImage myImage("checker.bmp");
-        Attributes imageUniforms;
+		static BufferImage myImage("checker.bmp");
+		Attributes imageUniforms;
 
-		Transfrom model = translate4x4(0, 0, 0);
-		Transform view = camera4x4(	myCam.x, myCam.y, myCam.z, 
-									myCam.yaw, myCam.pitch, myCam.roll);
+		Transform model = translate4x4(0, 0, 0);
+		Transform view = camera4x4(myCam.x, myCam.y, myCam.z, 
+					   myCam.yaw, myCam.pitch, myCam.roll);
+		Transform proj = perspective4x4(60, 1.0, 1, 200);
 
 		// Uniforms
 		// [0] -> Image reference
@@ -531,7 +532,8 @@ void TestPipeline(Buffer2D<PIXEL> & target)
 		imageUniforms.insertPtr((void*)&myImage);
 		imageUniforms.insertPtr((void*)&model);
 		imageUniforms.insertPtr((void*)&view);
-		
+		imageUniforms.insertPtr((void*)&proj);
+
         FragmentShader fragImg;
 		fragImg.FragShader = ImageFragShader;
 
