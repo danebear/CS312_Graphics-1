@@ -60,6 +60,18 @@ struct Vertex
     double w;
 };
 
+// Everything needed for the view/camera transform
+struct camControls
+{
+	double x = 0;
+	double y = 0;
+	double z = 0;
+	double yaw = 0;
+	double roll = 0;
+	double pitch = 0;
+};
+camControls myCam;
+
 /******************************************************
  * BUFFER_2D:
  * Used for 2D buffers including render targets, images
@@ -70,6 +82,7 @@ template <class T>
 class Buffer2D 
 {
     protected:
+        bool baseAllocated = false;
         T** grid;
         int w;
         int h;
@@ -83,22 +96,27 @@ class Buffer2D
             {
                 grid[r] = (T*)malloc(sizeof(T) * w);
             }
+	    baseAllocated = true;
         }
 
         // Empty Constructor
-        Buffer2D()
-        {}
+	Buffer2D() {}
+		  
 
     public:
         // Free dynamic memory
         ~Buffer2D()
         {
-            // De-Allocate pointers for column references
-            for(int r = 0; r < h; r++)
-            {
-                free(grid[r]);
-            }
-            free(grid);
+	  // De-Allocate pointers for column references
+	  if(baseAllocated)	    
+	    {
+	      for(int r = 0; r < h; r++)
+		{
+		  free(grid[r]);
+		}
+	      free(grid);
+
+	    }
         }
 
         // Size-Specified constructor, no data
@@ -268,14 +286,9 @@ class BufferImage : public Buffer2D<PIXEL>
             // De-Allocate non-SDL2 image data
             if(ourBufferData)
             {
-                for(int y = 0; y < h; y++)
-                {
-                    free(grid[y]);
-                }
+	        free(grid);
+		return;
             }
-
-            // De-Allocate pointers for column references
-            free(grid);
 
             // De-Allocate this image plane if necessary
             if(ourSurfaceInstance)
@@ -316,6 +329,7 @@ class BufferImage : public Buffer2D<PIXEL>
 	    {
 	      return;
 	    }	  
+	  ourBufferData = true;
         }
 };
 
@@ -357,15 +371,19 @@ class Attributes
             while(numMembers < first.numMembers)
             {
 	         arr[numMembers].d = baryInterp(firstWgt, secndWgt, thirdWgt, first.arr[numMembers].d, secnd[numMembers].d, third.arr[numMembers].d);
-		 arr[numMembers].d = arr[numMembers].d * correctZ;
-		 numMembers += 1;
+			 arr[numMembers].d = arr[numMembers].d * correctZ;
+			 numMembers += 1;
             }
         }
 
         // Needed by clipping (linearly interpolated Attributes between two others)
-        Attributes(const Attributes & first, const Attributes & second, const double & valueBetween)
+        Attributes(const Attributes & first, const Attributes & second, const double & along)
         {
-            // Your code goes here when clipping is implemented
+				numMembers = first.numMembers;
+				for(int i = 0; i < numMembers; i++)
+				{
+					arr[i].d = (first[i].d) + ((second[i].d - first[i].d) * along);
+				}
         }
 
         // Const Return operator

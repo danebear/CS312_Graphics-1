@@ -194,8 +194,8 @@ Transform rotate4x4(const DIMENSION & dim, const double & degs)
       break;
     case Y:
       tr[0][0] = cosT;
-      tr[0][2] = -sinT;
-      tr[2][0] = sinT;
+      tr[0][2] = sinT;
+      tr[2][0] = -sinT;
       tr[2][2] = cosT;
       break;
     case Z:
@@ -233,6 +233,39 @@ Transform scale4x4(const double & scale)
   return tr;
 }
 
+
+Transform perspective4x4(const double & fovYDegrees, const double & aspectRatio, 
+			 const double & near, const double & far)
+{
+		Transform rt;
+		
+		double top = near * tan((fovYDegrees * M_PI) / 180.0 /2.0);
+		double right = aspectRatio * top;
+		
+		rt[0][0] = near / right;
+		rt[0][2] = 0;
+		rt[0][1] = 0;
+		rt[0][3] = 0;
+		
+		rt[1][0] = 0;
+		rt[1][1] = near / top;
+		rt[1][2] = 0;
+		rt[1][3] = 0;
+		
+		rt[2][0] = 0;
+		rt[2][1] = 0;
+		rt[2][2] = (far + near) / (far - near);
+		rt[2][3] = (-2 * far * near) / (far - near);
+		
+		rt[3][0] = 0;
+		rt[3][1] = 0;
+		rt[3][2] = 1;
+		rt[3][3] = 0;
+		
+		return rt;		
+}
+
+
 // Translation helper (4x4)
 Transform translate4x4(const double & offX, const double & offY, const double & offZ)
 {
@@ -256,5 +289,24 @@ Transform translate4x4(const double & offX, const double & offY, const double & 
 
   return tr;
 }
+
+
+
+
+Transform camera4x4(const double & offX, const double & offY, const double & offZ,
+					 const double & yaw, const double & pitch, const double & roll)
+{
+	Transform trans = translate4x4(-offX, -offY, -offZ);
+	Transform rotX = rotate4x4(X, -pitch);
+	Transform rotY = rotate4x4(Y, -yaw);
+	
+	Transform rt = rotX * rotY * trans;
+	return rt;	
+}
+
+
+
+
+
 
 #endif
