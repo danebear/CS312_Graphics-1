@@ -82,6 +82,7 @@ template <class T>
 class Buffer2D 
 {
     protected:
+        bool baseAllocated = false;
         T** grid;
         int w;
         int h;
@@ -95,22 +96,27 @@ class Buffer2D
             {
                 grid[r] = (T*)malloc(sizeof(T) * w);
             }
+	    baseAllocated = true;
         }
 
         // Empty Constructor
-        Buffer2D()
-        {}
+	Buffer2D() {}
+		  
 
     public:
         // Free dynamic memory
         ~Buffer2D()
         {
-            // De-Allocate pointers for column references
-            for(int r = 0; r < h; r++)
-            {
-                free(grid[r]);
-            }
-            free(grid);
+	  // De-Allocate pointers for column references
+	  if(baseAllocated)	    
+	    {
+	      for(int r = 0; r < h; r++)
+		{
+		  free(grid[r]);
+		}
+	      free(grid);
+
+	    }
         }
 
         // Size-Specified constructor, no data
@@ -280,14 +286,9 @@ class BufferImage : public Buffer2D<PIXEL>
             // De-Allocate non-SDL2 image data
             if(ourBufferData)
             {
-                for(int y = 0; y < h; y++)
-                {
-                    free(grid[y]);
-                }
+	        free(grid);
+		return;
             }
-
-            // De-Allocate pointers for column references
-            free(grid);
 
             // De-Allocate this image plane if necessary
             if(ourSurfaceInstance)
@@ -328,6 +329,7 @@ class BufferImage : public Buffer2D<PIXEL>
 	    {
 	      return;
 	    }	  
+	  ourBufferData = true;
         }
 };
 
