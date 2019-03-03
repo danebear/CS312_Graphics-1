@@ -95,12 +95,12 @@ void processUserInputs(bool & running)
 		if((e.key.keysym.sym == 'a' && e.type == SDL_KEYDOWN))
 		{
 			myCam.x -= (cos((myCam.yaw / 180.0) * M_PI)) * 0.5;
-			myCam.z -= (sin((myCam.yaw / 180.0) * M_PI)) * 0.5;
+			myCam.z += (sin((myCam.yaw / 180.0) * M_PI)) * 0.5;
 		}
 		if((e.key.keysym.sym == 'd' && e.type == SDL_KEYDOWN))
 		{
 			myCam.x += (cos((myCam.yaw / 180.0) * M_PI)) * 0.5;
-			myCam.z += (sin((myCam.yaw / 180.0) * M_PI)) * 0.5;
+			myCam.z -= (sin((myCam.yaw / 180.0) * M_PI)) * 0.5;
 		}
 		
 		
