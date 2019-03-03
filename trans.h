@@ -234,12 +234,12 @@ Transform scale4x4(const double & scale)
 }
 
 
-Transform perspective4x4(	const double & fovYDegrees, const double & aspectRatio, 
-							const double & near, const double & far)
+Transform perspective4x4(const double & fovYDegrees, const double & aspectRatio, 
+			 const double & near, const double & far)
 {
 		Transform rt;
 		
-		double top = near * tan((fovYDegrees * M_PI) / 180.0)/ 2.0;
+		double top = near * tan((fovYDegrees * M_PI) / 180.0 /2.0);
 		double right = aspectRatio * top;
 		
 		rt[0][0] = near / right;
@@ -296,7 +296,6 @@ Transform translate4x4(const double & offX, const double & offY, const double & 
 Transform camera4x4(const double & offX, const double & offY, const double & offZ,
 					 const double & yaw, const double & pitch, const double & roll)
 {
-	
 	Transform trans = translate4x4(-offX, -offY, -offZ);
 	Transform rotX = rotate4x4(X, -pitch);
 	Transform rotY = rotate4x4(Y, -yaw);
