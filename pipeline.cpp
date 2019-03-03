@@ -61,7 +61,7 @@ void processUserInputs(bool & running)
 				double mouseX = e.motion.xrel;
 				double mouseY = e.motion.yrel;
 				
-				myCam.yaw -= mouseX * 0.02;
+				myCam.yaw += mouseX * 0.02;
 				myCam.pitch += mouseY * 0.02;
 			}
 		}
@@ -85,12 +85,12 @@ void processUserInputs(bool & running)
 		if((e.key.keysym.sym == 'w' && e.type == SDL_KEYDOWN))
 		{
 			myCam.z += (cos((myCam.yaw / 180.0) * M_PI)) * 0.5;
-			myCam.x -= (sin((myCam.yaw / 180.0) * M_PI)) * 0.5;
+			myCam.x += (sin((myCam.yaw / 180.0) * M_PI)) * 0.5;
 		}
 		if((e.key.keysym.sym == 's' && e.type == SDL_KEYDOWN))
 		{
 			myCam.z -= (cos((myCam.yaw / 180.0) * M_PI)) * 0.5;
-			myCam.x += (sin((myCam.yaw / 180.0) * M_PI)) * 0.5;
+			myCam.x -= (sin((myCam.yaw / 180.0) * M_PI)) * 0.5;
 		}
 		if((e.key.keysym.sym == 'a' && e.type == SDL_KEYDOWN))
 		{

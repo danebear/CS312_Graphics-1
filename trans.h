@@ -194,8 +194,8 @@ Transform rotate4x4(const DIMENSION & dim, const double & degs)
       break;
     case Y:
       tr[0][0] = cosT;
-      tr[0][2] = -sinT;
-      tr[2][0] = sinT;
+      tr[0][2] = sinT;
+      tr[2][0] = -sinT;
       tr[2][2] = cosT;
       break;
     case Z:
